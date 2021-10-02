@@ -10,4 +10,6 @@ ADD . /backend/
 COPY entrypoint.sh /backend/
 RUN chmod +x entrypoint.sh
 
+EXPOSE 8000
+
 ENTRYPOINT ["/backend/entrypoint.sh"]
