@@ -1,3 +1,7 @@
+import os 
+from alembic.config import Config
+from alembic import command
+
 from fastapi import FastAPI
 from auth_routes import auth_router
 from order_routes import order_router
@@ -7,6 +11,10 @@ import inspect, re
 from fastapi.routing import APIRoute
 from fastapi.openapi.utils import get_openapi
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
+alembic_cfg = Config(f"{current_dir}/alembic.ini")
+alembic_cfg.set_main_option("sqlalchemy.url", os.getenv('CONNECTION_STRING', 'postgresql://mbvpfycs:jZbPHD9ETANF1SchMG4d27KPP_NBSFhQ@arjuna.db.elephantsql.com/mbvpfycs'))
+command.upgrade(alembic_cfg, "head")
 
 app = FastAPI()
 
@@ -18,7 +26,7 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title = "Pizza Delivery API",
         version = "1.0",
-        description = "An API for a Pizza Delivery service",
+        description = "An API for a Pizza Delivery Service",
         routes = app.routes,
     )
 
