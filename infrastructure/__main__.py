@@ -5,16 +5,12 @@ import pulumi_docker as docker
 import pulumi_eks as eks
 import pulumi_kubernetes as k8s
 
-# Create an EKS cluster with the default configuration.
 cluster = eks.Cluster('my-cluster');
 
-# Build and publish our app's container image:
 
-# ...1) Create a private ECR repository.
 repo = aws.ecr.Repository('fastapi-repo')
 image_name = repo.repository_url
 
-# ...2) Get registry info (creds and endpoint).
 def get_registry_info(rid):
     """Get registry info (creds and endpoint)."""
     creds = aws.ecr.get_credentails(registry_id=rid)
@@ -25,14 +21,12 @@ def get_registry_info(rid):
     return docker.ImageRegistry(creds.proxy_endpoint, parts[0], parts[1])
 registry_info = repo.registry_id.apply(get_registry_info)
 
-# ...3) Build and publish the container image.
 image = docker.Image('my-app-image',
     build='../app',
     image_name=image_name,
     registry=registry_info
 )
 
-# Create a NGINX Deployment and load balanced Service, running our app.
 app_name = 'fastapi-app'
 app_labels = { 'app': app_name }
 deployment = k8s.apps.v1.Deployment(f'{app_name}-dep',
@@ -58,8 +52,6 @@ service = k8s.core.v1.Service(f'{app_name}-svc',
     ), opts = pulumi.ResourceOptions(provider = cluster.provider)
 )
 
-# Export the URL for the load balanced service.
 pulumi.export('ingress_ip', service.status.load_balancer.ingress[0].ip)
 
-# Export the cluster's kubeconfig.
 pulumi.export('kubeconfig', cluster.kubeconfig)
